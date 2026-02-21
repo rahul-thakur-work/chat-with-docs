@@ -22,7 +22,8 @@ export async function POST(req: Request) {
     if (!chatId || !Array.isArray(messages)) {
       return NextResponse.json({ error: "chatId and messages required" }, { status: 400 });
     }
-    const firstUser = messages.find((m: { role?: string }) => m.role === "user") as { parts?: { type?: string; text?: string }[] } | undefined;
+    type Msg = { role?: string; parts?: { type?: string; text?: string }[] };
+    const firstUser = (messages as Msg[]).find((m) => m.role === "user");
     const firstText = firstUser?.parts?.find((p) => p.type === "text")?.text;
     const titleToUse = title || (firstText ? String(firstText).slice(0, 80) : "Chat");
     await saveChat(userId, chatId, titleToUse, messages);
