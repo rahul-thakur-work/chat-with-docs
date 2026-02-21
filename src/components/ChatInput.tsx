@@ -39,7 +39,7 @@ export function ChatInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex shrink-0 gap-2 border-t border-zinc-200 bg-white py-3 dark:border-zinc-700 dark:bg-zinc-900">
+    <form onSubmit={handleSubmit} className="flex shrink-0 gap-3 border-t border-[var(--border)] bg-[var(--card)] p-4">
       <label htmlFor="chat-input" className="sr-only">
         Message
       </label>
@@ -47,18 +47,19 @@ export function ChatInput({
         ref={inputRef}
         id="chat-input"
         rows={1}
+        style={{ overflow: "hidden" }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
         placeholder={placeholder}
-        className="min-h-[44px] max-h-40 flex-1 resize-none rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-2.5 text-zinc-900 placeholder-zinc-500 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-400"
+        className="min-h-[44px] max-h-40 flex-1 resize-none rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)]  placeholder-[var(--muted)] outline-none transition-colors focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/20 dark:focus:border-zinc-500 dark:focus:ring-zinc-500/20"
         aria-describedby="input-hint"
       />
       <button
         type="submit"
         disabled={disabled || !value.trim()}
-        className="shrink-0 self-end rounded-xl bg-emerald-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:bg-emerald-700 dark:hover:bg-emerald-600"
+        className="shrink-0 self-end rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         aria-label="Send message"
       >
         Send

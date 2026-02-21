@@ -14,6 +14,7 @@ import {
 import { UploadZone } from "@/components/UploadZone";
 import { ChatMessages } from "@/components/ChatMessages";
 import { ChatInput } from "@/components/ChatInput";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface ActiveDoc {
   docId: string;
@@ -213,26 +214,25 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-dvh flex-col bg-zinc-50 dark:bg-zinc-950">
-      <header className="shrink-0 border-b border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex h-dvh flex-col bg-[var(--background)]">
+      <header className="shrink-0 border-b border-[var(--border)] bg-[var(--card)] px-4 py-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Chat with your docs
+            <h1 className="text-lg font-semibold tracking-tight text-[var(--foreground)]">
+              ChatDoX AI
             </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Upload a PDF, then ask questions. Answers are based on your documents.
-            </p>
+          
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
             <SignedOut>
               <SignInButton mode="modal">
-                <button className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
+                <button className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800">
                   Sign in
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
+                <button className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200">
                   Sign up
                 </button>
               </SignUpButton>
@@ -244,34 +244,37 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4">
-        <SignedOut>
-          <div className="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-4">
+      <h1 id="hero-title" className="text-2xl leading-35px w-full text-center mb-4 font-semibold tracking-tight text-[var(--foreground)]">
+              Upload a document, then ask questions. Answers are based on your files.
+            </h1>
+        {/* <SignedOut>
+          <div className="shrink-0 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--muted)]">
             Sign in to upload documents and chat. Your documents are stored per account.
           </div>
-        </SignedOut>
+        </SignedOut> */}
 
         <section
-          className="shrink-0 py-4"
+          className="shrink-0 pb-4"
           aria-label="Upload and my documents"
         >
           <SignedIn>
             <UploadZone onUploadComplete={handleUploadComplete} disabled={chatLoading} />
             {myDocuments.length > 0 && (
-              <div className="mt-3">
-                <h2 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <div className="mt-4">
+                <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
                   My documents
                 </h2>
                 <ul className="flex flex-wrap gap-2" aria-label="My documents">
                   {myDocuments.map((d) => (
-                    <li key={d.id} className="flex items-center gap-1">
-                      <span className="rounded-lg bg-zinc-100 px-2.5 py-1 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    <li key={d.id} className="flex items-center gap-1.5">
+                      <span className="rounded-md border border-[var(--border)] bg-[var(--card)] px-2.5 py-1 text-sm text-[var(--foreground)]">
                         {d.filename}
                       </span>
                       <button
                         type="button"
                         onClick={() => addDocToChat(d)}
-                        className="rounded bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-emerald-700"
+                        className="rounded-md bg-zinc-900 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                       >
                         Add to chat
                       </button>
@@ -281,7 +284,7 @@ export default function Home() {
               </div>
             )}
             {activeDocs.length > 0 && (
-              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-2 text-xs text-[var(--muted)]">
                 In this chat: {activeDocs.map((d) => d.filename).join(", ")}
               </p>
             )}
@@ -289,16 +292,16 @@ export default function Home() {
         </section>
 
         <SignedIn>
-          <div className="mb-2 flex flex-wrap items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             {previousChats.length > 0 && (
               <>
-                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Previous:</span>
+                <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Previous</span>
                 {previousChats.map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => setSelectedChatIdToLoad(c.id)}
-                    className="rounded-lg border border-zinc-300 bg-white px-2.5 py-1 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded-md border border-[var(--border)] bg-[var(--card)] px-2.5 py-1.5 text-sm text-[var(--foreground)] transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     {c.title || "Chat"}
                   </button>
@@ -308,13 +311,13 @@ export default function Home() {
             <button
               type="button"
               onClick={startNewChat}
-              className="rounded-lg bg-emerald-600 px-2.5 py-1 text-sm font-medium text-white hover:bg-emerald-700"
+              className="rounded-md bg-zinc-900 px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               New chat
             </button>
           </div>
           <section
-            className="flex min-h-0 flex-1 flex-col rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm"
             aria-label="Chat"
           >
             <ChatSection
@@ -332,8 +335,8 @@ export default function Home() {
           </section>
         </SignedIn>
         <SignedOut>
-          <div className="flex flex-1 items-center justify-center rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-            <p className="text-zinc-500 dark:text-zinc-400">Sign in to start chatting with your docs.</p>
+          <div className="flex flex-1 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--card)]">
+            <p className="text-sm text-[var(--muted)]">Sign in to start chatting with your docs.</p>
           </div>
         </SignedOut>
       </div>

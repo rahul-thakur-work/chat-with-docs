@@ -106,9 +106,9 @@ export function UploadZone({ onUploadComplete, disabled }: UploadZoneProps) {
         onDragLeave={onDragLeave}
         className={`
           flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8
-          transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2
-          ${dragActive ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" : "border-zinc-300 dark:border-zinc-600"}
-          ${disabled || uploading ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-emerald-400"}
+          transition-colors outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-500
+          ${dragActive ? "border-zinc-400 bg-zinc-50 dark:border-zinc-500 dark:bg-zinc-800/50" : "border-[var(--border)]"}
+          ${disabled || uploading ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-500"}
         `}
       >
         <input
@@ -121,13 +121,13 @@ export function UploadZone({ onUploadComplete, disabled }: UploadZoneProps) {
           aria-describedby="upload-hint upload-error"
         />
         {uploading ? (
-          <span className="text-zinc-600 dark:text-zinc-400">Uploading…</span>
+          <span className="text-sm text-[var(--muted)]">Uploading…</span>
         ) : (
           <>
-            <span className="mb-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <span className="mb-1 text-sm font-medium text-[var(--foreground)]">
               Drop a PDF, .txt, or .md here or click to upload
             </span>
-            <span id="upload-hint" className="text-xs text-zinc-500 dark:text-zinc-400">
+            <span id="upload-hint" className="text-xs text-[var(--muted)]">
               Max {MAX_SIZE_MB} MB
             </span>
           </>

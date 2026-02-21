@@ -15,11 +15,11 @@ export function ChatMessages({ messages, isLoading, activeDocCount = 0, firstTok
   if (messages.length === 0 && !isLoading) {
     return (
       <div
-        className="flex flex-1 items-center justify-center text-zinc-500 dark:text-zinc-400"
+        className="flex flex-1 items-center justify-center text-[var(--muted)]"
         role="status"
         aria-live="polite"
       >
-        <p>Upload a PDF, then ask questions about it.</p>
+        <p className="text-sm">Upload a document, then ask questions about it.</p>
       </div>
     );
   }
@@ -28,24 +28,24 @@ export function ChatMessages({ messages, isLoading, activeDocCount = 0, firstTok
   const showFirstTokenForLast = lastMessage?.role === "assistant";
 
   return (
-    <ul className="flex flex-1 flex-col gap-4 overflow-y-auto px-1 py-4" aria-label="Chat messages">
+    <ul className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-5" aria-label="Chat messages">
       {messages.map((message) => (
         <li
           key={message.id}
           className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
         >
-          <div className="max-w-[85%] space-y-1">
+          <div className="max-w-[85%] space-y-1.5">
             <div
-              className={`rounded-2xl px-4 py-2.5 ${
+              className={`rounded-2xl px-4 py-3 ${
                 message.role === "user"
-                  ? "bg-emerald-600 text-white dark:bg-emerald-700"
+                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
                   : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
               }`}
               role="article"
               aria-label={message.role === "user" ? "Your message" : "Assistant message"}
             >
               <span className="sr-only">{message.role === "user" ? "You" : "Assistant"}: </span>
-              <div className="whitespace-pre-wrap break-words">
+              <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
                 {message.parts.map((part, i) => {
                   if (part.type === "text") {
                     return <span key={`${message.id}-${i}`}>{part.text}</span>;
@@ -55,7 +55,7 @@ export function ChatMessages({ messages, isLoading, activeDocCount = 0, firstTok
               </div>
             </div>
             {message.role === "assistant" && (activeDocCount > 0 || (showFirstTokenForLast && firstTokenMs != null)) && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400" aria-hidden="true">
+              <p className="text-xs text-[var(--muted)]" aria-hidden="true">
                 {activeDocCount > 0 && "Grounded in your documents"}
                 {activeDocCount > 0 && showFirstTokenForLast && firstTokenMs != null && " · "}
                 {showFirstTokenForLast && firstTokenMs != null && `First token in ${firstTokenMs} ms`}
@@ -67,10 +67,10 @@ export function ChatMessages({ messages, isLoading, activeDocCount = 0, firstTok
       {isLoading && (
         <li className="flex justify-start" aria-live="polite" aria-busy="true">
           <div
-            className="max-w-[85%] rounded-2xl bg-zinc-100 px-4 py-2.5 dark:bg-zinc-800"
+            className="max-w-[85%] rounded-2xl bg-zinc-100 px-4 py-3 dark:bg-zinc-800"
             aria-label="Assistant is typing"
           >
-            <span className="inline-block h-4 w-2 animate-pulse rounded bg-zinc-500" />
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-zinc-400 dark:bg-zinc-500" />
           </div>
         </li>
       )}
