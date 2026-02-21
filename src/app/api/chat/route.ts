@@ -1,4 +1,5 @@
 import { streamText, type UIMessage, convertToModelMessages } from "ai";
+import { auth } from "@clerk/nextjs/server";
 import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import { groq } from "@ai-sdk/groq";
@@ -32,7 +33,8 @@ export async function POST(req: Request) {
         break;
       }
     }
-    const context = await getContextForPrompt(docIds, 6000, query);
+    const { userId } = await auth();
+    const context = await getContextForPrompt(docIds, 6000, query, userId ?? null);
     const system =
       context.length > 0
         ? `${SYSTEM_PROMPT_BASE}\n\n## Document context (use this to answer):\n\n${context}`

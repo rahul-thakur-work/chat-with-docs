@@ -14,10 +14,23 @@ export function UploadZone({ onUploadComplete, disabled }: UploadZoneProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isAllowedType = (file: File) => {
+    const t = file.type.toLowerCase();
+    const n = file.name.toLowerCase();
+    return (
+      t.includes("pdf") ||
+      t === "text/plain" ||
+      t === "text/markdown" ||
+      n.endsWith(".txt") ||
+      n.endsWith(".md") ||
+      n.endsWith(".markdown")
+    );
+  };
+
   const uploadFile = useCallback(
     async (file: File) => {
-      if (!file.type.includes("pdf")) {
-        setError("Only PDF files are supported.");
+      if (!isAllowedType(file)) {
+        setError("Supported: PDF, .txt, .md");
         return;
       }
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
@@ -80,7 +93,7 @@ export function UploadZone({ onUploadComplete, disabled }: UploadZoneProps) {
       <label
         role="button"
         tabIndex={0}
-        aria-label="Upload PDF document"
+        aria-label="Upload document (PDF, TXT, MD)"
         aria-disabled={disabled || uploading}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -101,7 +114,7 @@ export function UploadZone({ onUploadComplete, disabled }: UploadZoneProps) {
         <input
           id="file-input"
           type="file"
-          accept="application/pdf"
+          accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown"
           className="sr-only"
           disabled={disabled || uploading}
           onChange={onInputChange}
@@ -112,7 +125,7 @@ export function UploadZone({ onUploadComplete, disabled }: UploadZoneProps) {
         ) : (
           <>
             <span className="mb-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Drop a PDF here or click to upload
+              Drop a PDF, .txt, or .md here or click to upload
             </span>
             <span id="upload-hint" className="text-xs text-zinc-500 dark:text-zinc-400">
               Max {MAX_SIZE_MB} MB

@@ -59,11 +59,16 @@ function splitIntoChunks(text: string): DocChunk[] {
   return chunks;
 }
 
+function cacheKey(id: string, userId: string | null): string {
+  return userId ? `${userId}:${id}` : id;
+}
+
 /** Save doc to memory and persist to Blob when BLOB_READ_WRITE_TOKEN is set. Computes embeddings when provider is available. */
 export async function saveDoc(
   id: string,
   filename: string,
-  fullText: string
+  fullText: string,
+  userId: string | null = null
 ): Promise<StoredDoc> {
   const chunks = splitIntoChunks(fullText);
   if (hasEmbeddingProvider() && chunks.length > 0) {
@@ -76,29 +81,36 @@ export async function saveDoc(
     }
   }
   const doc: StoredDoc = { id, filename, chunks, fullText, uploadedAt: Date.now() };
-  memoryStore.set(id, doc);
+  memoryStore.set(cacheKey(id, userId), doc);
   const payload: StoredDocPayload = { ...doc };
-  await storagePutDoc(payload);
+  await storagePutDoc(payload, userId);
   return doc;
 }
 
 /** Get doc from memory or load from Blob and cache. */
-export async function getDoc(id: string): Promise<StoredDoc | undefined> {
-  const cached = memoryStore.get(id);
+export async function getDoc(
+  id: string,
+  userId: string | null = null
+): Promise<StoredDoc | undefined> {
+  const key = cacheKey(id, userId);
+  const cached = memoryStore.get(key);
   if (cached) return cached;
-  const fromBlob = await storageGetDoc(id);
+  const fromBlob = await storageGetDoc(id, userId);
   if (fromBlob) {
     const doc: StoredDoc = { ...fromBlob };
-    memoryStore.set(id, doc);
+    memoryStore.set(key, doc);
     return doc;
   }
   return undefined;
 }
 
-export async function getDocsByIds(docIds: string[]): Promise<StoredDoc[]> {
+export async function getDocsByIds(
+  docIds: string[],
+  userId: string | null = null
+): Promise<StoredDoc[]> {
   const docs: StoredDoc[] = [];
   for (const id of docIds) {
-    const doc = await getDoc(id);
+    const doc = await getDoc(id, userId);
     if (doc) docs.push(doc);
   }
   return docs;
@@ -166,9 +178,10 @@ function getContextKeyword(docs: StoredDoc[], maxChars: number): string {
 export async function getContextForPrompt(
   docIds: string[],
   maxChars: number = DEFAULT_MAX_CHARS,
-  query?: string
+  query?: string,
+  userId: string | null = null
 ): Promise<string> {
-  const docs = await getDocsByIds(docIds);
+  const docs = await getDocsByIds(docIds, userId);
   if (docs.length === 0) return "";
 
   const hasEmbeddings = docs.some((d) => d.chunks.some((c) => c.embedding?.length));
@@ -178,10 +191,11 @@ export async function getContextForPrompt(
   return getContextKeyword(docs, maxChars);
 }
 
-/** List all doc IDs (memory + Blob when configured). */
-export async function listDocIds(): Promise<string[]> {
+/** List all doc IDs (memory + Blob when configured). Scoped by userId when provided. */
+export async function listDocIds(userId: string | null = null): Promise<string[]> {
+  const fromBlob = await storageListDocIds(userId);
+  if (userId) return fromBlob;
   const fromMemory = new Set(memoryStore.keys());
-  const fromBlob = await storageListDocIds();
   fromBlob.forEach((id) => fromMemory.add(id));
   return Array.from(fromMemory);
 }

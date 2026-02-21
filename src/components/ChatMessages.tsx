@@ -7,9 +7,11 @@ interface ChatMessagesProps {
   isLoading?: boolean;
   /** When > 0, show "Grounded in your documents" under assistant replies (citations). */
   activeDocCount?: number;
+  /** First token latency in ms for the last assistant message; show "First token in X ms". */
+  firstTokenMs?: number | null;
 }
 
-export function ChatMessages({ messages, isLoading, activeDocCount = 0 }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading, activeDocCount = 0, firstTokenMs }: ChatMessagesProps) {
   if (messages.length === 0 && !isLoading) {
     return (
       <div
@@ -21,6 +23,9 @@ export function ChatMessages({ messages, isLoading, activeDocCount = 0 }: ChatMe
       </div>
     );
   }
+
+  const lastMessage = messages[messages.length - 1];
+  const showFirstTokenForLast = lastMessage?.role === "assistant";
 
   return (
     <ul className="flex flex-1 flex-col gap-4 overflow-y-auto px-1 py-4" aria-label="Chat messages">
@@ -49,9 +54,11 @@ export function ChatMessages({ messages, isLoading, activeDocCount = 0 }: ChatMe
                 })}
               </div>
             </div>
-            {message.role === "assistant" && activeDocCount > 0 && (
+            {message.role === "assistant" && (activeDocCount > 0 || (showFirstTokenForLast && firstTokenMs != null)) && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400" aria-hidden="true">
-                Grounded in your documents
+                {activeDocCount > 0 && "Grounded in your documents"}
+                {activeDocCount > 0 && showFirstTokenForLast && firstTokenMs != null && " · "}
+                {showFirstTokenForLast && firstTokenMs != null && `First token in ${firstTokenMs} ms`}
               </p>
             )}
           </div>
