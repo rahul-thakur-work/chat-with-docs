@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chat with your docs
 
-## Getting Started
+AI chat app that answers questions from your uploaded PDFs. Built with **Next.js 15** (App Router), **Vercel AI SDK**, **streaming UX**, and RAG-style retrieval.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Upload PDFs** – Drag-and-drop or click to upload (max 10 MB).
+- **Streaming responses** – Answers stream in real time.
+- **RAG-style context** – Document text is chunked and injected into the model context so answers are grounded in your docs.
+- **Accessible UI** – Focus management, ARIA labels, keyboard support.
+- **Multi-provider** – **Gemini** (2.0 Flash) when `GOOGLE_GENERATIVE_AI_API_KEY` is set; else **Groq** (Llama 3.3 70B) or **OpenAI** (gpt-4o-mini).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Next.js 15 (App Router), React 19, TypeScript
+- Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/google`, `@ai-sdk/openai`, `@ai-sdk/groq`)
+- Tailwind CSS 4
+- pdf-parse (PDF text extraction)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+1. Clone and install:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   cd chat-with-docs && npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Add env vars (copy from `.env.local.example`):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   cp .env.local.example .env.local
+   ```
 
-## Deploy on Vercel
+   Set **one** of (priority order):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   - `GOOGLE_GENERATIVE_AI_API_KEY` – for Gemini (get from [Google AI Studio](https://aistudio.google.com/apikey))
+   - `GROQ_API_KEY` – for Groq (Llama)
+   - `OPENAI_API_KEY` – for OpenAI
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Run dev:
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000), upload a PDF, then ask questions about it.
+
+## Project layout
+
+- `src/app/page.tsx` – Main chat page (upload zone + messages + input).
+- `src/app/api/upload/route.ts` – PDF upload; extracts text, chunks, stores in memory.
+- `src/app/api/chat/route.ts` – Chat API; injects doc context and streams via Vercel AI SDK.
+- `src/lib/docs.ts` – In-memory doc store and chunking for RAG.
+- `src/components/` – `UploadZone`, `ChatMessages`, `ChatInput`.
+
+## Metrics
+
+- **First token time** – Logged server-side in the chat route (`onFinish`). Target: &lt; 200 ms first token for a strong UX.
+
+## Resume line
+
+> Built an AI chat-with-docs app using Next.js 15 App Router, Vercel AI SDK, and streaming UX; integrated RAG-style retrieval and file upload.
+
+## Roadmap
+
+See **[docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md)** for a Senior PM-style scaling and optimization plan: persistence, semantic RAG, citations, auth, and phased feature priorities.
+
+## License
+
+MIT
