@@ -41,7 +41,15 @@ async function streamToText(stream: ReadableStream<Uint8Array>): Promise<string>
     if (done) break;
     if (value) chunks.push(value);
   }
-  return Buffer.concat(chunks).toString("utf-8");
+  let totalLength = 0;
+  for (const chunk of chunks) totalLength += chunk.length;
+  const merged = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return new TextDecoder().decode(merged);
 }
 
 export async function storagePutDoc(

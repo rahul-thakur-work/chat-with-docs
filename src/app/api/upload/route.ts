@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /** Allow CORS preflight (OPTIONS) so POST from same or other origins works. */
 export function OPTIONS() {
@@ -21,16 +22,16 @@ function hasAllowedExtension(name: string): boolean {
   return ALLOWED_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
-async function extractTextFromFile(file: File, buffer: Buffer): Promise<string> {
+async function extractTextFromFile(file: File, data: Uint8Array): Promise<string> {
   const type = file.type.toLowerCase();
   const name = file.name.toLowerCase();
 
   if (type === "text/plain" || type === "text/markdown" || name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".markdown")) {
-    return buffer.toString("utf-8").trim();
+    return new TextDecoder().decode(data).trim();
   }
 
   // For PDF files, use pdfjs-dist
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
   let text = "";
 
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -73,11 +74,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const data = new Uint8Array(await file.arrayBuffer());
     let text: string;
 
     try {
-      text = await extractTextFromFile(file, buffer);
+      text = await extractTextFromFile(file, data);
     } catch (parseErr) {
       console.error("Parse error:", parseErr);
       return NextResponse.json(

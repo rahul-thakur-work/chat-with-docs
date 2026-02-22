@@ -5,6 +5,8 @@ import { openai } from "@ai-sdk/openai";
 import { groq } from "@ai-sdk/groq";
 import { getContextForPrompt } from "@/lib/docs";
 
+export const maxDuration = 60;
+
 const SYSTEM_PROMPT_BASE = `You are a helpful assistant that answers questions based on the documents the user has uploaded.
 - Answer only from the provided document context when relevant; otherwise say you don't have that information in the documents.
 - When you use a specific passage from the context, cite it inline like [Source: filename] so the user knows which doc it came from.

@@ -11,12 +11,66 @@ A Next.js app that lets you upload documents (PDF, TXT, MD) and chat with an AI 
 - **Auth** — Sign in/sign up via [Clerk](https://clerk.com); uploads and chats are scoped per user.
 - **Theme** — Light/dark mode toggle.
 
+## Data Flow
+
+```mermaid
+flowchart TD
+    subgraph Client["Browser"]
+        UI["Page (React)"]
+        UZ["UploadZone"]
+        CI["ChatInput"]
+        CM["ChatMessages"]
+    end
+
+    subgraph API["Next.js API Routes"]
+        UP["/api/upload"]
+        CH["/api/chat"]
+        DOC["/api/documents"]
+        CHS["/api/chats"]
+    end
+
+    subgraph Lib["Server Modules"]
+        PDF["pdfjs-dist\nText Extraction"]
+        CHUNK["docs.ts\nChunking + RAG"]
+        EMB["embeddings.ts\nGoogle Embeddings"]
+        ST["storage.ts\nVercel Blob"]
+        CST["chat-storage.ts\nVercel Blob"]
+    end
+
+    subgraph External["External Services"]
+        CLERK["Clerk Auth"]
+        LLM["LLM Provider\nGemini / Groq / OpenAI"]
+        BLOB[("Vercel Blob\nStorage")]
+    end
+
+    UI -->|Sign in/up| CLERK
+    UZ -->|POST FormData| UP
+    UP -->|Extract text| PDF
+    PDF --> CHUNK
+    CHUNK -->|Embed chunks| EMB
+    CHUNK -->|Persist doc| ST
+    ST --> BLOB
+
+    CI -->|POST messages + docIds| CH
+    CH -->|Retrieve context| CHUNK
+    CHUNK -->|Semantic search| EMB
+    CH -->|Stream response| LLM
+    LLM -->|Streamed tokens| CM
+
+    CH -->|Save chat| CST
+    CST --> BLOB
+    UI -->|GET| DOC
+    DOC -->|List docs| ST
+    UI -->|GET/POST| CHS
+    CHS -->|List/save chats| CST
+```
+
 ## Tech stack
 
 - **Next.js 16** (App Router), **React 19**, **TypeScript**
 - **Clerk** — authentication
 - **Vercel AI SDK** — chat and streaming; supports **Google Gemini**, **Groq**, and **OpenAI**
-- **pdf-parse** — PDF text extraction
+- **pdfjs-dist** — PDF text extraction
 - **Vercel Blob** (optional) — persistent document and chat storage
 
 ## Setup
