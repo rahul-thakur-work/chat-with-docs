@@ -4,6 +4,9 @@ import { PDFParse } from "pdf-parse";
 import { saveDoc } from "@/lib/docs";
 import { randomUUID } from "crypto";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 /** Allow CORS preflight (OPTIONS) so POST from same or other origins works. */
 export function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: { Allow: "POST, OPTIONS" } });
