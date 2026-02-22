@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { PDFParse } from "pdf-parse";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import { saveDoc } from "@/lib/docs";
 import { randomUUID } from "crypto";
 
@@ -24,13 +24,22 @@ function hasAllowedExtension(name: string): boolean {
 async function extractTextFromFile(file: File, buffer: Buffer): Promise<string> {
   const type = file.type.toLowerCase();
   const name = file.name.toLowerCase();
+
   if (type === "text/plain" || type === "text/markdown" || name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".markdown")) {
     return buffer.toString("utf-8").trim();
   }
-  const parser = new PDFParse({ data: buffer });
-  const result = await parser.getText();
-  await parser.destroy();
-  return (result?.text ?? "").trim();
+
+  // For PDF files, use pdfjs-dist
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  let text = "";
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((item: any) => item.str).join("") + "\n";
+  }
+
+  return text.trim();
 }
 
 export async function POST(req: Request) {
@@ -39,6 +48,7 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json({ error: "Sign in to upload documents" }, { status: 401 });
     }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
@@ -65,6 +75,7 @@ export async function POST(req: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     let text: string;
+
     try {
       text = await extractTextFromFile(file, buffer);
     } catch (parseErr) {
