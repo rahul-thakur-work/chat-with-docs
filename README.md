@@ -1,70 +1,94 @@
-# Chat with your docs
+# Chat with Docs
 
-AI chat app that answers questions from your uploaded PDFs. Built with **Next.js 15** (App Router), **Vercel AI SDK**, **streaming UX**, and RAG-style retrieval.
+A Next.js app that lets you upload documents (PDF, TXT, MD) and chat with an AI assistant that answers from your uploaded content. Supports semantic retrieval when embeddings are configured, chat history, and optional persistent storage.
 
 ## Features
 
-- **Upload PDFs** – Drag-and-drop or click to upload (max 10 MB).
-- **Streaming responses** – Answers stream in real time.
-- **RAG-style context** – Document text is chunked and injected into the model context so answers are grounded in your docs.
-- **Accessible UI** – Focus management, ARIA labels, keyboard support.
-- **Multi-provider** – **Gemini** (2.0 Flash) when `GOOGLE_GENERATIVE_AI_API_KEY` is set; else **Groq** (Llama 3.3 70B) or **OpenAI** (gpt-4o-mini).
+- **Document upload** — PDF, `.txt`, and `.md` (max 10 MB). Text is extracted and chunked for RAG.
+- **RAG chat** — Ask questions; answers are grounded in your documents with optional inline citations `[Source: filename]`.
+- **Semantic search** — When `GOOGLE_GENERATIVE_AI_API_KEY` is set, document chunks are embedded and the most relevant passages are used for context.
+- **Chat history** — Previous chats are listed and can be resumed (persisted when Vercel Blob is configured).
+- **Auth** — Sign in/sign up via [Clerk](https://clerk.com); uploads and chats are scoped per user.
+- **Theme** — Light/dark mode toggle.
 
-## Stack
+## Tech stack
 
-- Next.js 15 (App Router), React 19, TypeScript
-- Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/google`, `@ai-sdk/openai`, `@ai-sdk/groq`)
-- Tailwind CSS 4
-- pdf-parse (PDF text extraction)
+- **Next.js 16** (App Router), **React 19**, **TypeScript**
+- **Clerk** — authentication
+- **Vercel AI SDK** — chat and streaming; supports **Google Gemini**, **Groq**, and **OpenAI**
+- **pdf-parse** — PDF text extraction
+- **Vercel Blob** (optional) — persistent document and chat storage
 
 ## Setup
 
-1. Clone and install:
+### 1. Install and run
 
-   ```bash
-   cd chat-with-docs && npm install
-   ```
+```bash
+npm install
+npm run dev
+```
 
-2. Add env vars (copy from `.env.local.example`):
+Open [http://localhost:3000](http://localhost:3000).
 
-   ```bash
-   cp .env.local.example .env.local
-   ```
+### 2. Environment variables
 
-   Set **one** of (priority order):
+Create `.env.local` in the project root.
 
-   - `GOOGLE_GENERATIVE_AI_API_KEY` – for Gemini (get from [Google AI Studio](https://aistudio.google.com/apikey))
-   - `GROQ_API_KEY` – for Groq (Llama)
-   - `OPENAI_API_KEY` – for OpenAI
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | Clerk publishable key |
+| `CLERK_SECRET_KEY` | Yes | Clerk secret key |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | One of these | Gemini for chat; also enables embeddings for semantic RAG |
+| `GROQ_API_KEY` | One of these | Groq (e.g. Llama) for chat |
+| `OPENAI_API_KEY` | One of these | OpenAI for chat |
+| `BLOB_READ_WRITE_TOKEN` | No | Vercel Blob token; enables persisting docs and chat history |
 
-3. Run dev:
+**Chat model priority:** Gemini → Groq → OpenAI (first key found wins).
 
-   ```bash
-   npm run dev
-   ```
+**Embeddings:** Only Google is used for embeddings; set `GOOGLE_GENERATIVE_AI_API_KEY` to enable semantic retrieval. Without it, context is keyword-style (all chunks from selected docs).
 
-   Open [http://localhost:3000](http://localhost:3000), upload a PDF, then ask questions about it.
+### 3. Clerk
 
-## Project layout
+1. Create an app at [clerk.com](https://clerk.com).
+2. Add the Clerk env vars above.
+3. Configure sign-in/sign-up (e.g. email, Google) as needed.
 
-- `src/app/page.tsx` – Main chat page (upload zone + messages + input).
-- `src/app/api/upload/route.ts` – PDF upload; extracts text, chunks, stores in memory.
-- `src/app/api/chat/route.ts` – Chat API; injects doc context and streams via Vercel AI SDK.
-- `src/lib/docs.ts` – In-memory doc store and chunking for RAG.
-- `src/components/` – `UploadZone`, `ChatMessages`, `ChatInput`.
+## Scripts
 
-## Metrics
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
 
-- **First token time** – Logged server-side in the chat route (`onFinish`). Target: &lt; 200 ms first token for a strong UX.
+## Project structure
 
-## Resume line
-
-> Built an AI chat-with-docs app using Next.js 15 App Router, Vercel AI SDK, and streaming UX; integrated RAG-style retrieval and file upload.
-
-## Roadmap
-
-See **[docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md)** for a Senior PM-style scaling and optimization plan: persistence, semantic RAG, citations, auth, and phased feature priorities.
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── upload/route.ts   # POST: upload PDF/TXT/MD, extract text, chunk, optional embed
+│   │   ├── chat/route.ts     # POST: streamed RAG chat (Gemini/Groq/OpenAI)
+│   │   ├── documents/route.ts
+│   │   └── chats/            # Chat list and by-id (for history)
+│   ├── layout.tsx
+│   ├── page.tsx              # Main UI: upload zone, doc list, chat, theme toggle
+│   └── globals.css
+├── components/
+│   ├── UploadZone.tsx
+│   ├── ChatMessages.tsx
+│   ├── ChatInput.tsx
+│   ├── ThemeToggle.tsx
+│   └── ThemeProvider.tsx
+├── lib/
+│   ├── docs.ts       # Chunking, in-memory store, semantic/keyword context
+│   ├── embeddings.ts # Google embeddings for RAG
+│   ├── storage.ts    # Vercel Blob document persistence
+│   └── chat-storage.ts
+└── middleware.ts     # Clerk protection for /api/upload, /api/chat, etc.
+```
 
 ## License
 
-MIT
+Private / unlicensed.

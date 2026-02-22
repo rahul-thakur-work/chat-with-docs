@@ -4,6 +4,11 @@ import { PDFParse } from "pdf-parse";
 import { saveDoc } from "@/lib/docs";
 import { randomUUID } from "crypto";
 
+/** Allow CORS preflight (OPTIONS) so POST from same or other origins works. */
+export function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: { Allow: "POST, OPTIONS" } });
+}
+
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_TYPES = ["application/pdf", "text/plain", "text/markdown"];
 const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".md", ".markdown"];
