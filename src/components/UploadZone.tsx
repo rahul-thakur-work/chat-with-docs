@@ -46,8 +46,19 @@ export function UploadZone({ onUploadComplete, disabled }: UploadZoneProps) {
           method: "POST",
           body: formData,
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data: { error?: string; docId?: string; filename?: string };
+        try {
+          data = raw.length ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error(
+            res.ok
+              ? "Invalid response from server"
+              : raw.slice(0, 200) || "Server error (no details). The file may be unsupported or too large."
+          );
+        }
         if (!res.ok) throw new Error(data.error || "Upload failed");
+        if (!data.docId || !data.filename) throw new Error("Invalid response from server");
         onUploadComplete({ docId: data.docId, filename: data.filename });
       } catch (e) {
         setError(e instanceof Error ? e.message : "Upload failed");

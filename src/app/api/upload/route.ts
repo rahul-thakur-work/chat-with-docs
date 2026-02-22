@@ -56,7 +56,21 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const text = await extractTextFromFile(file, buffer);
+    let text: string;
+    try {
+      text = await extractTextFromFile(file, buffer);
+    } catch (parseErr) {
+      console.error("Parse error:", parseErr);
+      return NextResponse.json(
+        {
+          error:
+            parseErr instanceof Error
+              ? parseErr.message
+              : "Could not read the file. The PDF may be invalid, corrupted, or password-protected.",
+        },
+        { status: 400 }
+      );
+    }
 
     if (!text) {
       return NextResponse.json(
