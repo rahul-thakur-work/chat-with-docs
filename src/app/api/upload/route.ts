@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import * as pdfjsLib from "pdfjs-dist";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+// @ts-expect-error - no type declarations for the worker module
+import * as pdfjsWorker from "pdfjs-dist/legacy/build/pdf.worker.mjs";
+
+// Pre-register the worker so pdfjs-dist uses it directly instead of
+// trying a dynamic import that fails on Vercel serverless
+(globalThis as Record<string, unknown>).pdfjsWorker = pdfjsWorker;
+
 import { saveDoc } from "@/lib/docs";
 import { randomUUID } from "crypto";
 
@@ -31,7 +38,7 @@ async function extractTextFromFile(file: File, data: Uint8Array): Promise<string
   }
 
   // For PDF files, use pdfjs-dist
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const pdf = await getDocument({ data }).promise;
   let text = "";
 
   for (let i = 1; i <= pdf.numPages; i++) {
